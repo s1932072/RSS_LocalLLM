@@ -68,7 +68,9 @@ if page == "メイン":
         update_interval = st.selectbox("更新間隔を選択してください", options=["15分", "30分", "1時間", "2時間", "6時間"])
         if st.button("フィードを追加"):
             if new_feed_url not in rss_feeds:
-                rss_feeds[new_feed_url] = {"interval": update_interval, "last_updated": str(datetime.now())}
+                feed = feedparser.parse(new_feed_url)
+                feed_title = feed.feed.title  # RSSフィードのタイトルを取得
+                rss_feeds[new_feed_url] = {"title": feed_title, "interval": update_interval, "last_updated": str(datetime.now())}
                 save_rss_feeds(rss_file_path, rss_feeds)
 
       # フィードの表示順序を変更
@@ -159,12 +161,11 @@ elif page == "管理画面":
     rss_data = []
     for url, feed_info in rss_feeds.items():
         rss_data.append({
-            "媒体名": feed_info.get('title', '不明'),
+            "媒体名": feed_info.get('title', '不明'),  # RSSフィードのタイトルを取得
             "URL": url,
             "最終更新": feed_info.get('last_updated', '不明'),
             "削除": url
         })
-
     # データフレームを作成
     df = pd.DataFrame(rss_data)
 
