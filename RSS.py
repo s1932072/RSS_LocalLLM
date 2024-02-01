@@ -70,7 +70,16 @@ if page == "メイン":
             if new_feed_url not in rss_feeds:
                 feed = feedparser.parse(new_feed_url)
                 feed_title = feed.feed.title  # RSSフィードのタイトルを取得
-                rss_feeds[new_feed_url] = {"title": feed_title, "interval": update_interval, "last_updated": str(datetime.now())}
+                # 画像のURLを取得
+                if hasattr(feed.entries[0], 'image'):
+                    feed_image_url = feed.entries[0].image
+                elif hasattr(feed.entries[0], 'media_content'):
+                    feed_image_url = feed.entries[0].media_content[0]['url']
+                elif hasattr(feed.entries[0], 'media_thumbnail'):
+                    feed_image_url = feed.entries[0].media_thumbnail[0]['url']
+                else:
+                    feed_image_url = None
+                rss_feeds[new_feed_url] = {"title": feed_title,  "image_url": feed_image_url,"interval": update_interval, "last_updated": str(datetime.now())}
                 save_rss_feeds(rss_file_path, rss_feeds)
 
       # フィードの表示順序を変更
@@ -102,15 +111,16 @@ if page == "メイン":
             if search_query.lower() in entry.title.lower():  
                 # summary属性の存在を確認
                 if hasattr(entry, 'summary'):
-                    soup = BeautifulSoup(entry.summary)
-                    image_url = soup.find('img')['src'] if soup.find('img') else None
+                    soup = BeautifulSoup(entry.summary, "html.parser")
+                    image_tag = soup.find('img')
+                    image_url = image_tag['src'] if image_tag else None
 
                     if image_url:
                         st.image(image_url, width=300)
 
                     # 記事タイトルにリンクを埋め込む
                     st.markdown(f"[{entry.title}]({entry_link})", unsafe_allow_html=True)
-                    
+                            
                     # お気に入りに追加するボタン
                     if st.button("お気に入りに追加", key=entry_key):
                         fav_entry = {
@@ -122,7 +132,6 @@ if page == "メイン":
                         }
                         st.session_state.favorites.append(fav_entry)
                         save_favorites(favorites_file_path, st.session_state.favorites)
-
 
 elif page == "お気に入り":
     source_options = list(set([fav.get('source', '不明') for fav in st.session_state.favorites]))
