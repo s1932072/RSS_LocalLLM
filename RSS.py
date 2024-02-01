@@ -6,6 +6,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 
+
 # JSONファイルからRSSフィードのデータを読み込む
 def load_rss_feeds(file_path):
     try:
@@ -103,26 +104,29 @@ if page == "メイン":
         feed_title = feed.feed.title
         st.subheader(feed.feed.title)
 
+
+
         for entry in feed.entries:
             # link属性の存在を確認し、存在しない場合は代替テキストを使用
             entry_link = entry.link if hasattr(entry, 'link') else "#"
             entry_key = f"{entry.title}-{entry_link}"  # エントリのタイトルとリンクを組み合わせてキーを生成
             # 検索クエリとタイトルの一致をチェック
-            if search_query.lower() in entry.title.lower():  
-                # summary属性の存在を確認
-                if hasattr(entry, 'summary'):
-                    soup = BeautifulSoup(entry.summary, "html.parser")
-                    image_tag = soup.find('img')
-                    image_url = image_tag['src'] if image_tag else None
+            if search_query.lower() in entry.title.lower():
+                    
+            # 画像URLを取得
+                image_url = entry.image if hasattr(entry, 'image') else None
+                
 
-                    if image_url:
-                        st.image(image_url, width=300)
+               
+
+                if image_url:
+                    st.image(image_url, width=300)
+
 
                     # 記事タイトルにリンクを埋め込む
-                    st.markdown(f"[{entry.title}]({entry_link})", unsafe_allow_html=True)
-                            
+                st.markdown(f"[{entry.title}]({entry_link})", unsafe_allow_html=True)
                     # お気に入りに追加するボタン
-                    if st.button("お気に入りに追加", key=entry_key):
+                if st.button("お気に入りに追加", key=entry_key):
                         fav_entry = {
                             'title': entry.title,
                             'link': entry_link,
