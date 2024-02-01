@@ -108,7 +108,7 @@ if page == "メイン":
 
         for entry in feed.entries:
             # link属性の存在を確認し、存在しない場合は代替テキストを使用
-            entry_link = entry.link if hasattr(entry, 'link') else "#"
+            entry_link = entry.link if hasattr(entry, 'link') else feed.channel.link
             entry_key = f"{entry.title}-{entry_link}"  # エントリのタイトルとリンクを組み合わせてキーを生成
             # 検索クエリとタイトルの一致をチェック
             if search_query.lower() in entry.title.lower():
@@ -127,6 +127,8 @@ if page == "メイン":
                 st.markdown(f"[{entry.title}]({entry_link})", unsafe_allow_html=True)
                     # お気に入りに追加するボタン
                 if st.button("お気に入りに追加", key=entry_key):
+                        #記事にURLがない場合に、チャンネルのURLを使用
+                        entry_link = entry_link if entry_link != "#" else feed.channel.link
                         fav_entry = {
                             'title': entry.title,
                             'link': entry_link,
